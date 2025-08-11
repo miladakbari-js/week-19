@@ -2,10 +2,11 @@ import { useForm } from "react-hook-form";
 import { loginUser } from "../services/authService";
 import { yupResolver } from "@hookform/resolvers/yup";
 import loginSchema from "../validations/loginSchema";
-import { useState } from "react";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
-  const [serverError, setServerError] = useState("");
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -13,9 +14,10 @@ function Login() {
   } = useForm({ resolver: yupResolver(loginSchema) });
 
   const onSubmit = async (data) => {
-    setServerError("");
     try {
       const res = await loginUser(data.username, data.password);
+      toast.success("Login successful!");
+      navigate("/dashboard")
       console.log("Login successful: ", res);
     } catch (error) {
       if (
@@ -23,9 +25,7 @@ function Login() {
         error.response.data &&
         error.response.data.message
       ) {
-        setServerError(error.response.data.message);
-      } else {
-        setServerError("Login failed, please try again.");
+        toast.error("Invalid username or password");
       }
     }
   };
@@ -48,7 +48,7 @@ function Login() {
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Loading . . ." : "Login"}
         </button>
-        {serverError && <p>{serverError}</p>}
+        
       </form>
     </div>
   );

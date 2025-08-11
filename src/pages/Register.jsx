@@ -4,13 +4,10 @@ import registerSchema from "../validations/registerSchema";
 import { registerUser } from "../services/authService";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 function Register() {
-
-  const [serverError, setServerError] = useState("");
-  const navigate = useNavigate()
-
-
+  const navigate = useNavigate();
 
   const {
     register,
@@ -18,26 +15,16 @@ function Register() {
     formState: { errors, isSubmitting },
   } = useForm({ resolver: yupResolver(registerSchema) });
 
-
-
   const onSubmit = async (data) => {
-    setServerError("");
-
-
     try {
       const res = await registerUser(data.username, data.password);
       console.log("Register successful:", res);
-    navigate("/login")
-    }catch (error) {
-
-
+      toast.success("Registration successful! Please log in.");
+      navigate("/login");
+    } catch (error) {
       if (error.response && error.response.status === 400) {
-        setServerError("User already exists");
-      } else {
-        setServerError("Registration failed, please try again.");
+        toast.error("User already exists");
       }
-
-      
     }
   };
   return (
@@ -53,8 +40,6 @@ function Register() {
           {...register("password")}
         />
         {errors.password && <p>{errors.password.message}</p>}
-
-        {serverError && <p>{serverError}</p>}
 
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Loading..." : "Register"}
