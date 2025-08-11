@@ -16,8 +16,9 @@ function Login() {
   const onSubmit = async (data) => {
     try {
       const res = await loginUser(data.username, data.password);
+      localStorage.setItem("auth_token", res.token);
       toast.success("Login successful!");
-      navigate("/dashboard")
+      navigate("/dashboard");
       console.log("Login successful: ", res);
     } catch (error) {
       if (
@@ -25,7 +26,9 @@ function Login() {
         error.response.data &&
         error.response.data.message
       ) {
-        toast.error("Invalid username or password");
+        const errorMessage =
+          error.response?.data.message || "Invalid username or password";
+        toast.error(errorMessage);
       }
     }
   };
@@ -48,7 +51,6 @@ function Login() {
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Loading . . ." : "Login"}
         </button>
-        
       </form>
     </div>
   );

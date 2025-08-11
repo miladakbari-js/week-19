@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import registerSchema from "../validations/registerSchema";
 import { registerUser } from "../services/authService";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
