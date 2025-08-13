@@ -15,7 +15,7 @@ const loginUser = async (username, password) => {
 const registerUser = async (username, password) => {
   try {
     const response = await api.post(
-     " /auth/register",
+     "/auth/register",
       { username, password }
     );
     return response.data;

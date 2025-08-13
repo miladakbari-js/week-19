@@ -3,7 +3,8 @@ import { loginUser } from "../services/authService";
 import { yupResolver } from "@hookform/resolvers/yup";
 import loginSchema from "../validations/loginSchema";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import styles from "./Login.module.css";
 
 function Login() {
   const navigate = useNavigate();
@@ -34,24 +35,36 @@ function Login() {
   };
 
   return (
-    <div>
-      <h3>Welcome to LoginPage</h3>
+    <div className={styles.container}>
+      <h3>بوت کمپ بوتواستارت</h3>
+      <div className={styles.form}>
+        <div className={styles.logo}>
+          <img src="./union.svg" alt="logo icon" />
+          <span>فرم ورود</span>
+        </div>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <input
+            type="text"
+            placeholder="نام کاربری"
+            {...register("username")}
+          />
+          <div>{errors.username && <p>{errors.username.message}</p>}</div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <input type="text" placeholder="User name" {...register("username")} />
-        <div>{errors.username && <p>{errors.username.message}</p>}</div>
+          <input
+            type="password"
+            placeholder="رمز عبور"
+            {...register("password")}
+          />
+          <div>{errors.password && <p>{errors.password.message}</p>}</div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          {...register("password")}
-        />
-        <div>{errors.password && <p>{errors.password.message}</p>}</div>
-
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Loading . . ." : "Login"}
-        </button>
-      </form>
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "شکیبا باشید ..." : "ورود"}
+          </button>
+        </form>
+        <div className={styles.reglink}>
+          <Link to="/register">ایجاد حساب کاربری</Link>
+        </div>
+      </div>
     </div>
   );
 }

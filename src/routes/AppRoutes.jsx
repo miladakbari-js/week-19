@@ -10,6 +10,14 @@ function AppRoutes() {
   return (
     <Routes>
       <Route
+        index
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
+      <Route
         path="/login"
         element={
           <PublicRoute>
@@ -35,7 +43,7 @@ function AppRoutes() {
         }
       />
 
-      <Route path="*" element={<PageNotFound />} />
+      <Route path="/*" element={<PageNotFound />} />
     </Routes>
   );
 }
