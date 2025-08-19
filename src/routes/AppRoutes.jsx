@@ -6,6 +6,7 @@ import PageNotFound from "../pages/404";
 import PrivateRoute from "./PrivateRoute";
 import PublicRoute from "./PublicRoute";
 
+
 function AppRoutes() {
   return (
     <Routes>
@@ -42,6 +43,8 @@ function AppRoutes() {
           </PrivateRoute>
         }
       />
+
+
 
       <Route path="/*" element={<PageNotFound />} />
     </Routes>

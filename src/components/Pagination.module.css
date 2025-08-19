@@ -1,0 +1,21 @@
+.container{
+    display: flex;
+    align-items: center;
+    gap: 50px;
+    justify-content: center;
+}
+.container button{
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 50%;
+    border: none;
+    background-color: #55A3F0;
+    color: #fff;
+    margin:auto;
+    cursor: pointer;
+    transition: all 0.1s ease-in-out;
+}
+.container button:hover{
+    transform: scale(1.2);
+}
