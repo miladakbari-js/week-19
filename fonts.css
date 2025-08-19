@@ -1,0 +1,9 @@
+
+@font-face{
+    font-family: "VazirmatnMedium";
+    src: url("./fonts/vazirmatn/Vazirmatn-Medium.woff2") format("woff2");
+}
+@font-face{
+    font-family: "VazirmatnRegular";
+    src: url("./fonts/vazirmatn/Vazirmatn-Regular.woff2") format("woff2");
+}

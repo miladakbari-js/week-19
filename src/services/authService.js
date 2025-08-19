@@ -1,9 +1,9 @@
-import axios from "axios";
+import api from "./axiosInstance";
 
 const loginUser = async (username, password) => {
   try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/auth/login`,
+    const response = await api.post(
+      "/auth/login",
       { username, password }
     );
     return response.data;
@@ -14,8 +14,8 @@ const loginUser = async (username, password) => {
 
 const registerUser = async (username, password) => {
   try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/auth/register`,
+    const response = await api.post(
+     "/auth/register",
       { username, password }
     );
     return response.data;
@@ -24,4 +24,4 @@ const registerUser = async (username, password) => {
   }
 };
 
-export { loginUser , registerUser };
+export { loginUser, registerUser };
