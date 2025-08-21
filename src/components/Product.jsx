@@ -1,4 +1,5 @@
 
+import { e2p } from "../services/authService";
 import styles from "./Product.module.css";
 
 function Product({ data, deleteHandler, editHandler, toggleSelect, selected }) {
@@ -17,10 +18,10 @@ function Product({ data, deleteHandler, editHandler, toggleSelect, selected }) {
           <p>{name}</p>
         </div>
         <div>
-          <p>{quantity}</p>
+          <p>{e2p(quantity)} عدد</p>
         </div>
         <div>
-          <p>{price} هزارتومان</p>
+          <p>{e2p(price)} هزارتومان</p>
         </div>
         <div >
           <p>{shortId}</p>

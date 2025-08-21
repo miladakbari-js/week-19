@@ -6,14 +6,15 @@ const getProducts = async (
   name = "",
   minPrice,
   maxPrice,
-  sort
+  
 ) => {
   try {
     const params = { page, limit };
+     if (page && page > 0) params.page = page;
     if (name) params.name = name;
     if (minPrice !== undefined) params.minPrice = minPrice;
     if (maxPrice !== undefined) params.maxPrice = maxPrice;
-    if(sort) params.sort = sort
+    
 
     const res = await api.get("/products", { params });
     return res.data;

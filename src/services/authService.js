@@ -24,4 +24,6 @@ const registerUser = async (username, password) => {
   }
 };
 
-export { loginUser, registerUser };
+const e2p = (s) => s.toString().replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+
+export { loginUser, registerUser , e2p};

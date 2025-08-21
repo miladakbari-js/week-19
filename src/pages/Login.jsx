@@ -48,14 +48,14 @@ function Login() {
             placeholder="نام کاربری"
             {...register("username")}
           />
-          <div>{errors.username && <p>{errors.username.message}</p>}</div>
+          <div className={styles.error}>{errors.username && <p>{errors.username.message}</p>}</div>
 
           <input
             type="password"
             placeholder="رمز عبور"
             {...register("password")}
           />
-          <div>{errors.password && <p>{errors.password.message}</p>}</div>
+          <div className={styles.error}>{errors.password && <p>{errors.password.message}</p>}</div>
 
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "شکیبا باشید ..." : "ورود"}
