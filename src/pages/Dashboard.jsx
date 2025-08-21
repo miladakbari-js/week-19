@@ -1,125 +1,45 @@
 import { RotatingLines } from "react-loader-spinner";
-import {
-  getProducts,
-  addProduct,
-  deleteProduct,
-  updateProduct,
-  deleteMultiplieProducts,
-} from "../services/productService";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 import Product from "../components/Product";
 import AddProductForm from "../components/AddProductForm";
-import { useEffect, useState } from "react";
-import styles from "./Dashboard.module.css";
 import ConfirmModal from "../components/ConfirmModal";
-import useDebounce from "../hooks/useDebounce";
-import { useSearchParams } from "react-router-dom";
 import Pagination from "../components/Pagination";
+import styles from "./Dashboard.module.css";
+
+import { useEffect, useReducer } from "react";
+import { useSearchParams } from "react-router-dom";
+import useDebounce from "../hooks/useDebounce";
+import { useProducts } from "../hooks/useProducts";
+import { e2p } from "../services/authService";
+import {
+  dashboardReducer,
+  initialDashboardState,
+} from "../hooks/dashboardReducer";
 
 function Dashboard() {
-  const [searchParams , setSearchParams] = useSearchParams();
-  const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-  const [selectedProducts, setSelectedProducts] = useState([]);
-  const [confirmDeleteMultiple, setConfirmDeleteMultiple] = useState(false);
-  const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
-  const [limit] = useState(6);
-  const [search, setSearch] = useState(searchParams.get("search") || "");
-  const [sort , setSort] = useState(searchParams.get("sort") || "")
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initial = initialDashboardState({
+    page: Number(searchParams.get("page")) || 1,
+    search: searchParams.get("search") || "",
+    limit: 6,
+  });
 
+  const [state, dispatch] = useReducer(dashboardReducer, initial);
+  const debouncedSearch = useDebounce(state.search, 300);
 
-  
+  const { data, isLoading, add, update, remove, removeMultiplieProducts } =
+    useProducts({
+      page: state.currentPage,
+      limit: state.limit,
+      search: debouncedSearch,
+    });
 
-  const debouncedSearch = useDebounce(search, 300);
-
-  const { data, isLoading } = useQuery(
-    ["products", currentPage, debouncedSearch , sort],
-    () => getProducts(currentPage, limit, debouncedSearch, undefined, undefined, sort),
-    {
-      onError: (err) => {
-        const message =
-          err?.response?.data?.message ||
-          err.message ||
-          "مشکلی در دریافت محصولات پیش آمد";
-        toast.error(message);
-      },
-    }
-  );
-
-  useEffect(()=>{
+  useEffect(() => {
     const params = {};
-    if(currentPage > 1) params.page = currentPage;
-    if(search) params.search = search;
-    if(sort) params.sort = sort;
+    if (state.currentPage > 1) params.page = state.currentPage;
+    if (state.search) params.search = state.search;
 
-    setSearchParams(params)
-  },[currentPage, search,sort, setSearchParams])
-
-  //--------------------------------------add product
-  const mutation = useMutation(addProduct, {
-    onSuccess: () => {
-      toast.success("محصول با موفقیت اضافه شد");
-      queryClient.invalidateQueries({ queryKey: ["products", currentPage] });
-      setShowForm(false);
-    },
-    onError: (err) => {
-      toast.error(
-        err?.response?.data?.message || err.message || "خطا در افزودن محصول"
-      );
-    },
-  });
-
-  //-------------------------------delete product
-  const deleteMutation = useMutation(deleteProduct, {
-    onSuccess: () => {
-      toast.success("محصول با موفقیت حذف شد!");
-      queryClient.invalidateQueries({ queryKey: ["products", currentPage] });
-    },
-    onError: (err) => {
-      toast.error(
-        err?.response?.data?.message || err.message || "خطا در حذف محصول"
-      );
-    },
-  });
-
-  //--------------------------------EditProduct
-  const updateMutation = useMutation(updateProduct, {
-    onSuccess: () => {
-      toast.success("محصول با موفقیت ویرایش شد");
-      queryClient.invalidateQueries({ queryKey: ["products", currentPage] });
-      setEditingProduct(null);
-      setShowForm(false);
-    },
-    onError: (err) => {
-      toast.error(
-        err?.response?.data?.message || err.message || "خطا در ویرایش محصول"
-      );
-    },
-  });
-
-  //-------------------------------DeleteMultiplieProducts
-  const deleteMultipleMutation = useMutation(deleteMultiplieProducts, {
-    onSuccess: () => {
-      toast.success("محصولات انتخابی باموفقیت حذف شدند!");
-      setSelectedProducts([]);
-      queryClient.invalidateQueries({ queryKey: ["products", currentPage] });
-      setConfirmDeleteMultiple(false);
-    },
-    onError: (err) => {
-      toast.error(
-        err?.response?.data?.message || err.message || "خطا در حذف چند محصول"
-      );
-    },
-  });
-
-  const toggleSelectProduct = (id) => {
-    setSelectedProducts((prev) =>
-      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
-    );
-  };
+    setSearchParams(params);
+  }, [state.currentPage, state.search, setSearchParams]);
 
   return (
     <div className={styles.container}>
@@ -129,8 +49,10 @@ function Dashboard() {
           <input
             type="text"
             placeholder="جستجو کالا"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={state.search}
+            onChange={(e) =>
+              dispatch({ type: "SET_SEARCH", payload: e.target.value })
+            }
           />
         </div>
         <div className={styles.line}></div>
@@ -146,33 +68,22 @@ function Dashboard() {
         <div className={styles.setting}>
           <img src="./setting.svg" alt="setting icon" />
           <h5>مدیریت کالا</h5>
+          {state.selectedProducts.length > 1 && (
+            <button
+              className={styles.multidelete}
+              onClick={() => dispatch({ type: "OPEN_CONFIRM_MULTIPLE" })}
+            >
+              حذف محصول ها
+            </button>
+          )}
         </div>
-        <div>
-          <select value={sort} onChange={(e)=> setSort(e.target.value)}>
-            <option value="">مرتب سازی</option>
-            <option value="price_asc">ارزان ترین</option>
-            <option value="price_desc">گران ترین</option>
-          </select>
-        </div>
-        <button
-          onClick={() => {
-            setShowForm(true);
-            setEditingProduct(null);
-          }}
-        >
+
+        <button onClick={() => dispatch({ type: "OPEN_FORM_CREATE" })}>
           افزودن محصول
         </button>
-        {selectedProducts.length > 1 && (
-          <button
-            className={styles.multidelete}
-            onClick={() => setConfirmDeleteMultiple(true)}
-          >
-            {selectedProducts.length}حذف انتخاب ها
-          </button>
-        )}
       </div>
 
-      {showForm && (
+      {state.showForm && (
         <AddProductForm
           onSubmit={(formData) => {
             const payload = {
@@ -180,18 +91,26 @@ function Dashboard() {
               price: Number(formData.price),
               quantity: Number(formData.quantity),
             };
-            editingProduct
-              ? updateMutation.mutate({
-                  id: editingProduct.id,
-                  productData: payload,
-                })
-              : mutation.mutate(payload);
+
+            if (state.editingProduct) {
+              update.mutate(
+                { id: state.editingProduct.id, data: payload },
+                {
+                  onSuccess: () => {
+                    dispatch({ type: "CLOSE_FORM" });
+                  },
+                }
+              );
+            } else {
+              add.mutate(payload, {
+                onSuccess: () => {
+                  dispatch({ type: "CLOSE_FORM" });
+                },
+              });
+            }
           }}
-          onClose={() => {
-            setShowForm(false);
-            setEditingProduct(null);
-          }}
-          defaultValues={editingProduct || undefined}
+          onClose={() => dispatch({ type: "CLOSE_FORM" })}
+          defaultValues={state.editingProduct || undefined}
         />
       )}
 
@@ -206,47 +125,69 @@ function Dashboard() {
       </div>
       <div className={styles.products}>
         {isLoading ? (
-          <div>
-            <RotatingLines strokeWidth="3" />
+          <div className={styles.loader}>
+            <RotatingLines strokeWidth="3" strokeColor="#0262c2" />
           </div>
         ) : data?.data?.length ? (
           data.data.map((item) => (
             <Product
               key={item.id}
               data={item}
-              deleteHandler={(id) => setConfirmDeleteId(id)}
-              editHandler={(product) => {
-                setEditingProduct(product);
-                setShowForm(true);
-              }}
-              toggleSelect={toggleSelectProduct}
-              selected={selectedProducts.includes(item.id)}
+              deleteHandler={(id) =>
+                dispatch({ type: "OPEN_CONFIRM_DELETE", payload: id })
+              }
+              editHandler={(product) =>
+                dispatch({ type: "OPEN_FORM_EDIT", payload: product })
+              }
+              toggleSelect={(id) =>
+                dispatch({ type: "TOGGLE_SELECT", payload: id })
+              }
+              selected={state.selectedProducts.includes(item.id)}
             />
           ))
         ) : (
-          <p>محصولی یافت نشد!</p>
+          <div className={styles.noproduct}>
+            <p>محصولی یافت نشد!</p>
+          </div>
         )}
-           <div className={styles.pagination}>
-        <Pagination currentPage={currentPage} data={data} limit={limit} setCurrentPage={setCurrentPage}/>
+        <div className={styles.pagination}>
+          <Pagination
+            currentPage={state.currentPage}
+            data={data}
+            limit={state.limit}
+            setCurrentPage={(p) => dispatch({ type: "SET_PAGE", payload: p })}
+          />
         </div>
-     
-     
       </div>
-      {confirmDeleteId && (
+
+      {state.confirmDeleteId && (
         <ConfirmModal
           message="آیا از حذف این محصول مطمئنید؟"
           onConfirm={() => {
-            deleteMutation.mutate(confirmDeleteId);
-            setConfirmDeleteId(null);
+            remove.mutate(state.confirmDeleteId, {
+              onSuccess: () => {
+                dispatch({ type: "CLOSE_CONFIRM_DELETE" });
+              },
+            });
           }}
-          onCancel={() => setConfirmDeleteId(null)}
+          onCancel={() => dispatch({ type: "CLOSE_CONFIRM_DELETE" })}
         />
       )}
-      {confirmDeleteMultiple && (
+
+      {state.confirmDeleteMultiple && (
         <ConfirmModal
-          message={`${selectedProducts.length}محصول انتخابی حذف شوند؟`}
-          onConfirm={() => deleteMultipleMutation.mutate(selectedProducts)}
-          onCancel={() => setConfirmDeleteMultiple(false)}
+          message={`${e2p(
+            state.selectedProducts.length
+          )} محصول انتخابی حذف شوند؟`}
+          onConfirm={() =>
+            removeMultiplieProducts.mutate(state.selectedProducts, {
+              onSuccess: () => {
+                dispatch({ type: "CLEAR_SELECTION" });
+                dispatch({ type: "CLOSE_CONFIRM_MULTIPLE" });
+              },
+            })
+          }
+          onCancel={() => dispatch({ type: "CLOSE_CONFIRM_MULTIPLE" })}
         />
       )}
     </div>
