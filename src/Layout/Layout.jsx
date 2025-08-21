@@ -5,7 +5,7 @@ function Layout({children}) {
   return (
     <>
     <header className={styles.header}>
-      <div>
+      <div dir="ltr">
         <img src="./calendar.svg" alt="calendar" />
         <h4>Task-Week19</h4>
       </div>
